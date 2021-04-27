@@ -55,11 +55,11 @@ vars.Update(env)
 
 installDir = env['PREFIX']
 
-t = env.Command( "src/wgrib2/" + TARGET, "", "cd src && make" )
+t = env.Command( "wgrib2/" + TARGET, "", "make" )
 Default( t )
 
 # Override the default clean to redirect it to call "make clean"
-env.CleanAction( t, Action(['cd src && make clean']) )
+env.CleanAction( t, Action(['make clean']) )
 
 # Add an installer
 binTarget = os.path.join( installDir, 'bin' )
