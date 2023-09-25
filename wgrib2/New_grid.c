@@ -136,7 +136,8 @@ int f_new_grid_vectors(ARG1) {
 #include "ipolates.h"
 #endif
 
-extern unsigned int npnts,nx,ny;
+extern unsigned int npnts;
+extern int nx,ny;
 extern double *lat, *lon;
 extern int decode, latlon, file_append, flush_mode;
 extern int use_scale, dec_scale, bin_scale, wanted_bits, max_bits;
@@ -149,7 +150,7 @@ static int interpol_type = 0;
 static int ipopt[20] = {-1,-1,0, 0,0,0, 0,0,0, 0};
 
 /*
- * HEADER:111:new_grid_interpolation:misc:1:new_grid interpolation X=bilinear,bicubic,neighbor,budget
+ * HEADER:111:new_grid_interpolation:misc:1:new_grid interpolation X=bilinear,bicubic,neighbor,budget,neighbor-budget
  */
 
 int f_new_grid_interpolation(ARG1) {
@@ -499,7 +500,7 @@ int f_new_grid(ARG4) {
             // set by the input grib file
 
 	    /* read earth radius */
-	    i = axes_earth(sec, &r_maj, &r_min);
+	    i = axes_earth(sec, &r_maj, &r_min, NULL);
 	    if (i) fatal_error_i("axes_earth: error code %d", i);
 
 	    if (save->radius_major != r_maj || save->radius_minor != r_min) {
@@ -737,7 +738,8 @@ extern int decode, latlon, file_append, flush_mode, header;
 extern int use_scale, dec_scale, bin_scale, wanted_bits, max_bits;
 extern enum output_grib_type grib_type;
 extern enum output_order_type output_order;
-extern int scan, nx_, ny_, save_translation;
+extern int scan, save_translation;
+extern unsigned int nx_, ny_;
 extern enum output_order_type output_order_wanted, output_order;
 enum wind_rotation_type wind_rotation;
 
@@ -783,8 +785,7 @@ int f_new_grid_interpolation(ARG1) {
 	    interpol_type = 4;
        }
 #endif
-//     turned off neighbor-budget - poorly explained in documentation
-//     else if (strcmp(arg1,"neighbor-budget") == 0) { interpol_type = 6; ipopt[0] = -1; }
+      else if (strcmp(arg1,"neighbor-budget") == 0) { interpol_type = 6; ipopt[0] = -1; }
       else fatal_error("new_grid_interpolation: unknown type %s", arg1);
    }
    return 0;
@@ -887,6 +888,8 @@ int f_new_grid(ARG4) {
     /* unstructured grid: location */
     unsigned char unstruct_grid_sec3[35];
     unsigned char sec4_latlon[34], *g;
+    int discipline;
+    unsigned char *p_discipline;
 
     int j, ibi, ibo, iret, nnx, nny, n_out, tmp_interpol_type;
     unsigned char *new_sec[8], *s, *bitmap, *p;
@@ -1130,7 +1133,7 @@ int f_new_grid(ARG4) {
 
 	if (wind_rotation == undefined) {
 	   if (strncmp(arg1,"grib",4) != 0 && strncmp(arg1,"location",8) != 0) {
-		fprintf(stderr,"Warning: -new_grid_wind set to earth\n");
+		fprintf(stderr,"Warning: -new_grid_winds set to earth\n");
 		wind_rotation = earth;
 	   }
 	}
@@ -1216,7 +1219,7 @@ int f_new_grid(ARG4) {
             // set by the input grib file
 
             /* read earth radius */
-            i = axes_earth(sec, &r_maj, &r_min);
+            i = axes_earth(sec, &r_maj, &r_min, NULL);
             if (i) fatal_error_i("axes_earth: error code %d", i);
 
             if (save->radius_major != r_maj || save->radius_minor != r_min) {
@@ -1290,7 +1293,11 @@ int f_new_grid(ARG4) {
 	    }
 	    /* the gdt may change because of radius, but no need to update */
 	}
-
+	/* 3/2021: update shape of earth */
+        p = code_table_3_2_location(sec);
+	/* new_grid will only interpolate to grid with shape of earth in 16 bytes*/
+        if (p) for (i = 0; i < 16; i++)  save->sec3[14+i] = p[i];
+ 
         i = getName(sec, mode, NULL, name, NULL, NULL);
 
         is_u = is_v = 0;
@@ -1337,6 +1344,10 @@ int f_new_grid(ARG4) {
             n_out = save->npnts_out;
             nnx = save->nx;
             nny = save->ny;
+	    p_discipline = code_table_0_0_location(sec);
+	    discipline = *p_discipline;
+	    *p_discipline = 0;
+
 	    for (i = 0; i < 34; i++) sec4_latlon[i] = 0;
 	    sec4_latlon[3] = 34;
 	    sec4_latlon[4] = 4;
@@ -1369,6 +1380,7 @@ int f_new_grid(ARG4) {
             new_sec[4][10] = 1;
             grib_wrt(new_sec, save->data_wrt, n_out, nnx, nny, 1, -3, 0,
                 18, 18, complex1, &(save->out));
+	    *p_discipline = discipline;
 	    save->output_latlon = 0;
 	}
 

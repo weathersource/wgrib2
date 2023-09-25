@@ -50,6 +50,7 @@ extern int run_flag;
 extern const char *item_deliminator;
 extern int use_scale;
 extern unsigned int *translation;
+extern enum geolocation_type geolocation;
 
 /* note: rpn_n[N_RPN_REGS], and rpn_data[N_RPN_REG] */
 size_t rpn_n[N_RPN_REGS] = { 0 };
@@ -142,8 +143,10 @@ int f_rpn(ARG1) {
 	    if (mode == 98) fprintf(stderr," plus");
 	    if (top <= 0) fatal_error("rpn: bad + expression","");
 	    j = top-1;
+#pragma omp parallel for private(i) schedule(static)
 	    for (i = 0; i < ndata; i++) {
-		if (DEFINED_VAL(stack[top][i]) && DEFINED_VAL(stack[j][i])) { stack[j][i] = stack[j][i] + stack[top][i];
+		if (DEFINED_VAL(stack[top][i]) && DEFINED_VAL(stack[j][i])) {
+		    stack[j][i] = stack[j][i] + stack[top][i];
 	        }
 		else stack[j][i] = UNDEFINED;
 	    }
@@ -153,6 +156,7 @@ int f_rpn(ARG1) {
 	    if (mode == 98) fprintf(stderr," minus");
 	    if (top <= 0) fatal_error("rpn: bad - expression","");
 	    j = top-1;
+#pragma omp parallel for private(i) schedule(static)
 	    for (i = 0; i < ndata; i++) {
 		if (DEFINED_VAL(stack[top][i]) && DEFINED_VAL(stack[j][i])) {
 		    stack[j][i] = stack[j][i] - stack[top][i];
@@ -165,6 +169,7 @@ int f_rpn(ARG1) {
 	    if (mode == 98) fprintf(stderr," times");
 	    if (top <= 0) fatal_error("rpn: bad * expression","");
 	    j = top-1;
+#pragma omp parallel for private(i) schedule(static)
 	    for (i = 0; i < ndata; i++) {
 		if (DEFINED_VAL(stack[top][i]) && DEFINED_VAL(stack[j][i])) {
 		    stack[j][i] = stack[j][i] * stack[top][i];
@@ -177,6 +182,7 @@ int f_rpn(ARG1) {
 	    if (mode == 98) fprintf(stderr," div");
 	    if (top <= 0) fatal_error("rpn: bad / expression","");
 	    j = top-1;
+#pragma omp parallel for private(i) schedule(static)
 	    for (i = 0; i < ndata; i++) {
 		if (DEFINED_VAL(stack[top][i]) && DEFINED_VAL(stack[j][i]) && (stack[top][i] != 0.0)) {
 		    stack[j][i] = stack[j][i] / stack[top][i];
@@ -192,6 +198,7 @@ int f_rpn(ARG1) {
 	    if (mode == 98) fprintf(stderr," merge");
 	    if (top <= 0) fatal_error("rpn: bad merge expression","");
 	    j = top-1;
+#pragma omp parallel for private(i) schedule(static)
 	    for (i = 0; i < ndata; i++) {
 		if (DEFINED_VAL(stack[top][i])) {
 		    stack[j][i] = stack[top][i];
@@ -234,7 +241,7 @@ int f_rpn(ARG1) {
 	else if (strcmp(string,"sqrt") == 0) {
 	    if (mode == 98) fprintf(stderr," sqrt");
 	    if (top < 0) fatal_error("rpn: bad sqrt expression","");
-#pragma omp parallel for private(i)
+#pragma omp parallel for private(i) schedule(static)
 	    for (i = 0; i < ndata; i++) {
 		if (DEFINED_VAL(stack[top][i]) && stack[top][i] >= 0.0) {
 		    stack[top][i] = sqrtf(stack[top][i]);
@@ -246,7 +253,7 @@ int f_rpn(ARG1) {
 	else if (strcmp(string,"sq") == 0) {
 	    if (mode == 98) fprintf(stderr," sq");
 	    if (top < 0) fatal_error("rpn: bad sq expression","");
-#pragma omp parallel for private(i)
+#pragma omp parallel for private(i) schedule(static)
 	    for (i = 0; i < ndata; i++) {
 		if (DEFINED_VAL(stack[top][i])) {
 		    stack[top][i] *= stack[top][i];
@@ -470,6 +477,7 @@ int f_rpn(ARG1) {
 	    for (i = 0; i < ndata; i++) {
 		lat[i] = stack[top][i];
 	    }
+	    geolocation = external;
 	}
 	else if (strcmp(string,"sto_lon") == 0) {
 	    if (lon == NULL) {
@@ -479,6 +487,7 @@ int f_rpn(ARG1) {
 	    for (i = 0; i < ndata; i++) {
 		lon[i] = stack[top][i];
 	    }
+	    geolocation = external;
 	}
 
 	// max and min
@@ -879,6 +888,7 @@ int f_rpn(ARG1) {
 	    cos_lat = 1.0;
             sum1 = wt = 0.0;
 	    if (lat != NULL) {
+#pragma omp parallel for private(i) firstprivate(cos_lat,last_lat) reduction(+:wt,sum1) schedule(static)
                 for (i = 0; i < ndata; i++) {
 		    if (DEFINED_VAL(stack[top][i]) && DEFINED_VAL(stack[j][i])) {
 		        if (last_lat != lat[i]) {
@@ -891,7 +901,7 @@ int f_rpn(ARG1) {
 	        }
             }
 	    else {
-#pragma omp parallel for private(i) reduction(+:wt,sum1)
+#pragma omp parallel for private(i) reduction(+:wt,sum1) schedule(static)
                 for (i = 0; i < ndata; i++) {
 		    if (DEFINED_VAL(stack[top][i]) && DEFINED_VAL(stack[j][i])) {
 		        sum1 +=  (stack[top][i] - stack[j][i]) * (stack[top][i] - stack[j][i]);
@@ -925,7 +935,7 @@ int f_rpn(ARG1) {
                 }
             }
 	    else {
-#pragma omp parallel for private(i) reduction(+:wt,sum1)
+#pragma omp parallel for private(i) reduction(+:wt,sum1) schedule(static)
                 for (i = 0; i < ndata; i++) {
                     if (DEFINED_VAL(stack[top][i])) {
                         sum1 +=  stack[top][i];
@@ -968,6 +978,7 @@ int f_rpn(ARG1) {
 	    sq1 = sq2 = sq12 = 0.0;
 	    if (lat != NULL) {
 	        // find mean values
+#pragma omp parallel for private(i) firstprivate(last_lat, cos_lat) reduction(+:wt,sum1,sum2) schedule(static)
                 for (i = 0; i < ndata; i++) {
                     if (DEFINED_VAL(stack[top][i]) && DEFINED_VAL(stack[j][i])) {
 	  	        if (last_lat != lat[i]) {
@@ -981,6 +992,9 @@ int f_rpn(ARG1) {
 	        }
 	        sum1 = sum1 / wt;
 	        sum2 = sum2 / wt;
+	        last_lat = 0;
+	        cos_lat = 1.0;
+#pragma omp parallel for private(i) firstprivate(last_lat, cos_lat) reduction(+:sq1,sq2,sq12) schedule(static)
                 for (i = 0; i < ndata; i++) {
                     if (DEFINED_VAL(stack[top][i]) && DEFINED_VAL(stack[j][i])) {
 		        if (last_lat != lat[i]) {
@@ -995,7 +1009,7 @@ int f_rpn(ARG1) {
 	    }
 	    else {
 	        // find mean values
-#pragma omp parallel for private(i) reduction(+:wt,sum1,sum2)
+#pragma omp parallel for private(i) reduction(+:wt,sum1,sum2) schedule(static)
                 for (i = 0; i < ndata; i++) {
                     if (DEFINED_VAL(stack[top][i]) && DEFINED_VAL(stack[j][i])) {
 		        sum1 += stack[top][i];
@@ -1005,7 +1019,7 @@ int f_rpn(ARG1) {
 	        }
 	        sum1 = sum1 / wt;
 	        sum2 = sum2 / wt;
-#pragma omp parallel for private(i) reduction(+:sq1,sq2,sq12)
+#pragma omp parallel for private(i) reduction(+:sq1,sq2,sq12) schedule(static)
                 for (i = 0; i < ndata; i++) {
                     if (DEFINED_VAL(stack[top][i]) && DEFINED_VAL(stack[j][i])) {
 		        sq1 += (stack[top][i]-sum1)*(stack[top][i]-sum1);

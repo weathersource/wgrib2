@@ -1,7 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifndef DISABLE_STAT
+#include <sys/types.h>
 #include <sys/stat.h>
+#include <unistd.h>
+#endif
+
 #include "wgrib2.h"
 
 /*
@@ -46,8 +52,10 @@ static struct opened_file *opened_file_start = NULL;
 FILE *ffopen(const char *filename, const char *mode)
 {
     struct opened_file *ptr;
+#ifndef DISABLE_STAT
     struct stat stat_buf;  /* test for pipes */
-    int is_read_file, is_write_file, is_append_file, i;
+#endif
+    int is_read_file, is_write_file, is_append_file, i, len;
     const char *p;
 
     /* see if is a read/write file */
@@ -112,10 +120,11 @@ FILE *ffopen(const char *filename, const char *mode)
 
     ptr = (struct opened_file *) malloc( sizeof(struct opened_file) );
     if (ptr == NULL) fatal_error("ffopen: memory allocation problem (%s)", filename);
-    ptr->name = (char *) malloc(strlen(filename) + 1);
+    len = strlen(filename) + 1;
+    ptr->name = (char *) malloc(len);
     if (ptr->name == NULL) fatal_error("ffopen: memory allocation problem (%s)", filename);
 
-    strncpy(ptr->name, filename, strlen(filename)+1);
+    strncpy(ptr->name, filename, len);
     ptr->is_read_file = is_read_file;
     ptr->usage_count = 1;
     ptr->do_not_close_flag = 1;		// default is not to close file file
@@ -151,6 +160,8 @@ FILE *ffopen(const char *filename, const char *mode)
     }
 
     /* check if output is to a pipe */
+    /* if no stat(), assume worst (slowest) case, files are pipes  */
+#ifndef DISABLE_STAT
     if (is_read_file == 0) {
 	if (stat(filename, &stat_buf) == -1) {
 	    /* remove ptr */
@@ -162,6 +173,9 @@ FILE *ffopen(const char *filename, const char *mode)
 	    flush_mode  = 1;
 	}
     }
+#else
+    flush_mode  = 1;
+#endif
 
     /* add ptr to linked list */
     ptr->next = opened_file_start;

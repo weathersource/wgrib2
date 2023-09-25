@@ -20,7 +20,7 @@
 
 
 /*
- * HEADER:100:ndate:misc:2:X=date Y=dt print date + dt
+ * HEADER:100:ndate:setup:2:X=date Y=dt print date + dt
  */
 
 int f_ndate(ARG2) {

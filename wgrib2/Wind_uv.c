@@ -35,7 +35,8 @@ int f_wind_uv(ARG1) {
         float *dir;
         float *speed;
         int has_dir, has_speed;
-        int use_scale, dec_scale, bin_scale, wanted_bits, max_bits, grib_type;
+        int use_scale, dec_scale, bin_scale, wanted_bits, max_bits;
+	enum output_grib_type grib_type;
         unsigned char *clone_sec_dir[9];
         unsigned char *clone_sec_speed[9];
         struct seq_file out;

@@ -16,6 +16,7 @@
  * read latlon from string
  *
  */
+extern enum geolocation_type geolocation;
 
 unsigned int read_latlon(const char *arg, double **lon, double **lat) {
     unsigned int n_out, i;
@@ -38,10 +39,13 @@ unsigned int read_latlon(const char *arg, double **lon, double **lat) {
             k = sscanf(arg, ":%lf:%lf%n", llon+i, llat+i, &j);
             if (k != 2) fatal_error("get_latlon_list: missing grid point locations: %s",arg);
         }
+
+	geolocation = external;
 	/* check values */
         for (i=0; i < n_out; i++) {
 	    if (llat[i] > 90.0 || llat[i] < -90.0) return (unsigned int) 0;
 	    if (llon[i] < 0.0) llon[i] += 360.0;
+	    if (llon[i] >= 360.0) llon[i] -= 360.0;
 	    if (llon[i] < 0.0 || llon[i] > 360.0) return (unsigned int) 0;
         }
         return n_out;

@@ -361,7 +361,7 @@ static int do_ave(struct ave_struct *save) {
     pdt = GB2_ProdDefTemplateNo(save->first_sec);
     for (i = 0; i < 9; i++) sec[i] = save->first_sec[i];
     sec[4] = sec4;
-//fprintf(stderr,"doave 0: pdt=%d\n", pdt);
+//fprintf(stderr,"do_ave 0: pdt=%d\n", pdt);
 
     // average of an analysis or forecast
 
@@ -384,7 +384,7 @@ static int do_ave(struct ave_struct *save) {
 
     if (ave_pdt >= PDT_MIN && ave_pdt <= PDT_MAX) {
 	// sec4 = new pdt with statistical processing
-	i = new_pdt(save->first_sec, sec4, ave_pdt, -1, 1);
+	i = new_pdt(save->first_sec, sec4, ave_pdt, -1, 1, NULL);
 
 	/* save verf time */
 	p = stat_proc_verf_time_location(sec);
@@ -409,7 +409,7 @@ static int do_ave(struct ave_struct *save) {
     else if (ave_pdt >= PDT_TYPE2 + PDT_MIN && ave_pdt <= PDT_TYPE2 + PDT_MAX) {
 
 	ave_len = GB2_Sec4_size(save->first_sec) + 12;
-	i = new_pdt(save->first_sec, sec4, ave_pdt, ave_len, 1);
+	i = new_pdt(save->first_sec, sec4, ave_pdt, ave_len, 1, NULL);
 
 	/* update verfification time */
 	p = stat_proc_verf_time_location(sec);
@@ -493,7 +493,7 @@ int f_time_processing(ARG4) {
 	i = atoi(arg2);
 	if (strncmp(arg2,"analyses",4) == 0 || i == 1) save->code_table_4_11 = 1;
 	else if (strncmp(arg2,"forecast",4) == 0 || i == 2) save->code_table_4_11 = 2;
-	else fatal_error("time_processing: code_table_4.11 must be 1/2 or analyses/forecast not $s", arg2);
+	else fatal_error("time_processing: code_table_4.11 must be 1/2 or analyses/forecast not %s", arg2);
 
 	i = sscanf(arg3, "%d%2s", &save->dt,string);
 	if (i != 2) fatal_error("time_processing: delta-time: (int)(2 characters) %s", arg3);

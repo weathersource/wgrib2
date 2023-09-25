@@ -31,7 +31,8 @@
 #define GB2_Center(sec)			UINT2(sec[1][5], sec[1][6])
 #define GB2_Subcenter(sec)		UINT2(sec[1][7], sec[1][8])
 #define GB2_MasterTable(sec)		((int) (sec[1][9]))
-#define GB2_LocalTable(sec)		((int) (sec[1][10]))
+// #define GB2_LocalTable(sec)		((int) (sec[1][10]))
+#define GB2_LocalTable(sec)		sec[1][10]
 
 /* Section 2 */
 #define GB2_Sec2_size(sec)		(sec[2] ? uint4(sec[2]+0) : 0)
@@ -173,7 +174,8 @@
 
 
 #define GDS_Lambert_Az_La1(gds)         (int4(gds+38) * 0.000001)
-#define GDS_Lambert_Az_Lo1(gds)         (uint4(gds+42) * 0.000001)
+// #define GDS_Lambert_Az_Lo1(gds)         (uint4(gds+42) * 0.000001)
+#define GDS_Lambert_Az_Lo1(gds)         (int4(gds+42) * 0.000001)
 #define GDS_Lambert_Az_Std_Par(gds)     (int4(gds+46) * 0.000001)
 #define GDS_Lambert_Az_Cen_Lon(gds)     (int4(gds+50) * 0.000001)
 #define GDS_Lambert_Az_nx(gds)          (uint4_missing(gds+30))
@@ -249,3 +251,5 @@
 #define JMA1 34
 #define JMA2 35
 #define KMA 40
+#define DWD1 78
+#define DWD2 79

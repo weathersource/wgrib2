@@ -43,6 +43,11 @@ static int g95_runstop = 0;
 #define IPOLATEV ipolatev_
 #endif
 
+#ifdef NVFORTRAN
+#define IPOLATES ipolates_
+#define IPOLATEV ipolatev_
+#endif
+
 #ifdef XLF
 #define IPOLATES ipolates
 #define IPOLATEV ipolatev

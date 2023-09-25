@@ -75,7 +75,7 @@ int set_metadata_string(ARG1) {
     char string[STRING_SIZE];
     char ftime[STRING_SIZE];
 
-    char field[8][100], str1[100], str2[100], str3[100];
+    char field[8][STRING_SIZE], str1[STRING_SIZE], str2[STRING_SIZE], str3[STRING_SIZE+6];
     double value1, value2;
   
     /* clear fields */
@@ -341,10 +341,19 @@ int set_metadata_string(ARG1) {
 	    if (f_set(call_ARG2(inv_out,NULL,str3,str2)) == 0) continue;
 	}
 
+	// X=T
 	// see if -set X T will work
-	j = sscanf(p,"%[^=]=%[^:]",str1, str2);
+	j = sscanf(p,"%[^ =]=%[^:]",str1, str2);
 	if (j == 2) {
-	    if (mode == 99 && j==2) fprintf(stderr,"metadata_str -set (%s) (%s)\n", str1, str2);
+	    if (mode == 99 && j==2) fprintf(stderr,"metadata_str (x=y) (%s) -set (%s) (%s)\n", p, str1, str2);
+	    if (f_set(call_ARG2(inv_out,NULL,str1,str2)) == 0) continue;
+	}
+
+	// X T
+	// see if -set X T will work
+	j = sscanf(p,"%s %[^:]",str1, str2);
+	if (j == 2) {
+	    if (mode == 99 && j==2) fprintf(stderr,"metadata_str (x y) (%s) -set (%s) (%s)\n", p, str1, str2);
 	    if (f_set(call_ARG2(inv_out,NULL,str1,str2)) == 0) continue;
 	}
 

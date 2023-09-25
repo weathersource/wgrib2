@@ -110,10 +110,10 @@ int f_import_grib_fs(ARG2) {
             /* g2clib ignores decimal scaling for constant fields make internal decoders look like g2clib*/
             center = GB2_Center(save->sec);
             j = code_table_5_0(save->sec);            // type of compression
-            if ( (j == 0 && sec[5][19] == 0) || ((j == 2 || j == 3) && int4(sec[5] + 31) == 0) ||
-                 (j == 40 && sec[5][19] == 0) || (j == 41 && sec[5][19] == 0) ||
-                 (center == NCEP && j == 40000 && sec[5][19] == 0) ||
-                 (center == NCEP && j == 40010 && sec[5][19] == 0)  ) {
+            if ( (j == 0 && save->sec[5][19] == 0) || ((j == 2 || j == 3) && int4(save->sec[5] + 31) == 0) ||
+                 (j == 40 && save->sec[5][19] == 0) || (j == 41 && save->sec[5][19] == 0) ||
+                 (center == NCEP && j == 40000 && save->sec[5][19] == 0) ||
+                 (center == NCEP && j == 40010 && save->sec[5][19] == 0)  ) {
                         save->sec[5][17] = save->sec[5][18] = 0;
             }
         }

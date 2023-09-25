@@ -16,7 +16,7 @@
 
 
 /*
- * HEADER:100:geolocation:inv:0:package (proj4,gctpc,internal,not_used) to get lat/lon of grid points
+ * HEADER:100:geolocation:inv:0:package used to get lat/lon of grid points (proj4,gctpc,internal,external, not_used)
  */
 
 extern enum geolocation_type geolocation;
@@ -24,9 +24,12 @@ extern enum geolocation_type geolocation;
 int f_geolocation(ARG0) {
 
     if (mode >= 0) {
+	strcat(inv_out,"geolocation=");
+	inv_out += strlen(inv_out);
         if (geolocation == proj4) strcat(inv_out,"proj4");
         else if (geolocation == gctpc) strcat(inv_out,"gctpc");
         else if (geolocation == internal) strcat(inv_out,"internal");
+        else if (geolocation == external) strcat(inv_out,"external");
         else if (geolocation == not_used) strcat(inv_out,"not_used");
     }
     return 0;

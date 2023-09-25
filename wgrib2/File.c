@@ -59,13 +59,15 @@ int f_bin(ARG1) {
 	    if (ndata > 4294967295U / sizeof(float))
 	        fatal_error("bin: 4-byte header overflow","");
 	    i = ndata * sizeof(float);
-            fwrite_file((void *) &i, sizeof(int), 1, save);
+            j = fwrite_file((void *) &i, sizeof(int), 1, save);
+	    if (j != 1) fatal_error("bin: write header","");
 	}
         j = fwrite_file((void *) data, sizeof(float), ndata, save);
 	if (j != ndata) fatal_error_u("bin: error writing grid point written=%u", j);
         if (header) {
 	    i = ndata * sizeof(float);
-	    fwrite_file((void *) &i, sizeof(int),1, save);
+	    j = fwrite_file((void *) &i, sizeof(int),1, save);
+	    if (j != 1) fatal_error("bin: write header","");
 	}
         if (flush_mode) fflush_file(save);
     }

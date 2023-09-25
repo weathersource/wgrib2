@@ -52,7 +52,7 @@ int f_set_prob(ARG5) {
 	fprintf(stderr,"\nWARNING: set_prob does not work with PDT %d\n", pdt);
 	return 0;
     }
-  
+ 
     if (arg1 != NULL && strcmp(arg1,"") != 0)
         p[-2] = (unsigned char) atoi(arg1);
     if (arg2 != NULL && strcmp(arg2,"") != 0)
@@ -63,17 +63,19 @@ int f_set_prob(ARG5) {
     // encode lower limit
     if (arg4 != NULL && strcmp(arg4,"") != 0) {
         value = atof(arg4);
-        best_scaled_value(value, &scale,&val);
-        p[1] = scale & 255;
-        uint_char(val, p+2);
+        best_scaled_value(value, &scale, &val);
+	scaled_char(scale,  value, p+1);
+        // p[1] = scale & 255;
+        // uint_char(val, p+2);
     }
 
     // encode upper limit
     if (arg5 != NULL && strcmp(arg5,"") != 0) {
         value = atof(arg5);
         best_scaled_value(value, &scale,&val);
-        p[6] = scale & 255;
-        uint_char(val, p+7);
+	scaled_char(scale, val, p+6);
+        // p[6] = scale & 255;
+        // uint_char(val, p+7);
     }
     return 0;
 }

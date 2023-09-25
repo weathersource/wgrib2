@@ -243,9 +243,9 @@ const char *ncep_level_table[64] = {
 /* 213 */ "low cloud top level",
 /* 214 */ "low cloud layer",
 /* 215 */ "cloud ceiling",
-/* 216 */ "reserved",
-/* 217 */ "reserved",
-/* 218 */ "reserved",
+/* 216 */ "effective layer top level %gm",
+/* 217 */ "effective layer bottom level %gm",
+/* 218 */ "effective layer %gm",
 /* 219 */ "reserved",
 /* 220 */ "planetary boundary layer",
 /* 221 */ "layer between two hybrid levels",
@@ -428,6 +428,9 @@ int level2(int mode, int type1, int undef_val1, float value1, int type2, int und
     }
     else if (type1 == 119 && type2 == 119) {
 	sprintf(inv_out,"%g-%g hybrid pressure layer",value1,value2);
+    }
+    else if (type1 == 150 && type2 == 150) {
+	sprintf(inv_out,"%g-%g generalized vertical height coordinate",value1,value2);
     }
     else if (type1 == 160 && type2 == 160) {
 	sprintf(inv_out,"%g-%g m below sea level",value1,value2);

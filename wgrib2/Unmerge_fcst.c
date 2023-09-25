@@ -33,7 +33,7 @@ int f_unmerge_fcst(ARG3) {
     struct local_struct {
         float *val;				// grid point value accumulator
         int has_val;				// 1 = val is valid
-        int n;					// number of grid points
+        unsigned int n;					// number of grid points
 	int fcst_time;				// forecast time
 	int fcst_units;
         unsigned char *clone_sec[9];		// copy of original sec
@@ -69,7 +69,7 @@ int f_unmerge_fcst(ARG3) {
 
         j = sscanf(arg2, "%d%2s", &(save->fcst_time), string);
         string[2] = 0;
-        if (j != 2) fatal_error("ndates: bad (int)(mn|hr|dy|mo|yr)","");
+        if (j != 2) fatal_error("unmerge_fcst: bad (int)(mn|hr|dy|mo|yr)","");
         save->fcst_units = string2time_unit(string);
         if (save->fcst_units == -1) fatal_error("ndates: unsupported time unit %s", string);
 

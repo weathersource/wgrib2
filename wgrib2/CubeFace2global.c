@@ -58,7 +58,7 @@ int f_cubeface2global(ARG2) {
 	     save->good_tiles[i] = 1;
 	}
 	for (i = 0; i < strlen(arg1); i++) {
-	    if (isdigit((int) arg1[i])) {
+	    if (isdigit((unsigned char) arg1[i])) {
 		tile = arg1[i] - '0';
                 if (tile > 6) fatal_error_i("cubeface2global: invalid tile to mask %d", tile);
 		save->good_tiles[tile] = 0;

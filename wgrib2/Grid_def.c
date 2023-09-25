@@ -8,6 +8,7 @@
 extern int decode;
 extern double *lat, *lon;
 extern int msg_no;
+extern enum geolocation_type geolocation;
 
 /*
  * HEADER:100:grid_def:misc:0:read lon and lat data from grib file -- experimental
@@ -40,12 +41,14 @@ int f_grid_def(ARG0) {
 	    lat = (double *) malloc(sizeof(double) * (size_t) ndata);
 	    if (lat == NULL) fatal_error_i("memory allocation error in grid_def #lat=%d", (int) ndata);
 	    for (i = 0; i < ndata; i++) lat[i] = data[i];
+	    geolocation = external;
         }
         if (strcmp("LOUV",name) == 0 || strcmp("LOPP",name) == 0 || strcmp("ELON",name) == 0 || strcmp("GEOLON",name) == 0) {
             if (lon != NULL) free(lon);
 	    lon = (double *) malloc(sizeof(double) * (size_t) ndata);
 	    if (lon == NULL) fatal_error_i("memory allocation error in grid_def #lon=%d", (int) ndata);
 	    for (i = 0; i < ndata; i++) lon[i] = data[i];
+	    geolocation = external;
         }
     }
     return 0;

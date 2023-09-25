@@ -15,15 +15,17 @@
  *   for (datecode = INITIAL_DATECODE; datecode < INITIAL_DATECODE + DT1; datecode += DT2)
  *
  * 1/2019 Public Domain by Wesley Ebisuzaki
+ * 6/2021  direct write to inv_file, to avoid inv_out overflows
  *
  */
 
 #define max(a,b) (a >= b) ? (a) : (b)
 
 char ndates_fmt[NAMELEN];
+extern struct seq_file inv_file;
 
 /*
- * HEADER:100:ndates:misc:3:X=date0 Y=(date1|dt1) Z=dt2  for (date=date0; date<(date1|date0+dt1); date+=dt2) print date
+ * HEADER:100:ndates:setup:3:X=date0 Y=(date1|dt1) Z=dt2  for (date=date0; date<(date1|date0+dt1); date+=dt2) print date
  */
 
 int f_ndates(ARG3) {
@@ -31,15 +33,15 @@ int f_ndates(ARG3) {
     int year, month, day, hour, minute, second, i;
     int year_end, month_end, day_end, hour_end, minute_end, second_end;
     int dtime, dt_unit, strlen_arg1, strlen_arg2, format;
-    char string[3], out[15];
-    /* only does calculation in initialization phase */
+    char string[3], out[15], fmt_out[STRING_SIZE];
+    /* only does calculation and output in initialization phase */
 
     if (mode == -1) {
 
         /* get starting datecode */
         strlen_arg1 = strlen(arg1);
 	for (i = 0; i < strlen_arg1; i++) {
-	    if (isdigit(arg1[i]) == 0) break;
+	    if (isdigit((unsigned char) arg1[i]) == 0) break;
 	}
 	if (i != strlen_arg1) fatal_error("ndates: illegal character, starting date %s", arg1);
 	day = month = 1;
@@ -64,7 +66,7 @@ int f_ndates(ARG3) {
         strlen_arg2 = strlen(arg2);
  
 	for (i = 0; i < strlen_arg2; i++) {
-	    if (isdigit(arg2[i]) == 0) break;
+	    if (isdigit((unsigned char) arg2[i]) == 0) break;
 	}
 
 	// ending date = date code
@@ -121,7 +123,9 @@ int f_ndates(ARG3) {
 	}
 
         if (dt_unit == -1) fatal_error("ndates: unsupported time unit %s", string);
-        
+
+	fmt_out[STRING_SIZE-1] = 0;
+
 	while (cmp_time(year, month, day, hour, minute, second,
 		year_end, month_end, day_end, hour_end, minute_end, second_end) == -1) {
 
@@ -144,11 +148,10 @@ int f_ndates(ARG3) {
 		sprintf(out, "%.4d%.2d%.2d%.2d%.2d%.2d", year, month, day, hour, minute, second);
 	    }
 
-	    if (inv_out - base_inv_out() + 50 > INV_BUFFER)
-		fatal_error_i("ndates: exceeded size INV_BUFFER %d", INV_BUFFER);
-
-	    sprintf(inv_out, ndates_fmt, out);
-	    inv_out += strlen(inv_out);
+	    snprintf(fmt_out, STRING_SIZE-1, ndates_fmt, out);
+	    if (fwrite_file(fmt_out, strlen(fmt_out), 1, &inv_file) != 1)
+		fatal_error("ndates: write to inventory file");
+	    
 	    add_dt(&year, &month, &day, &hour, &minute, &second, dtime, dt_unit);
         }
     }
@@ -156,7 +159,7 @@ int f_ndates(ARG3) {
 }
 
 /*
- * HEADER:100:ndates_fmt:misc:1:X = C format for ndates option
+ * HEADER:100:ndates_fmt:setup:1:X = C format for ndates option ex. 'date=%s'
  */
 
 int f_ndates_fmt(ARG1) {

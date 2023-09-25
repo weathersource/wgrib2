@@ -180,8 +180,8 @@ int f_submsg_uv(ARG1) {
 	   if (flush_mode) fflush_file(&(save->out));
 	   if (i) fatal_error_i("submsg_uv: write record problem %d",i);
 	   free_sec(save->sec);
-	   save->vname = NULL;
 	   fprintf(stderr,"submsg_uv: not paired, missing %s\n", save->vname);
+	   save->vname = NULL;
 	}
 
 	/* at this point, U is empty and data in sec[] */

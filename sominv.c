@@ -27,7 +27,7 @@ ALGORITHM REFERENCES
 static double lon_center,a,b,a2,a4,c1,c3,q,t,u,w,xj,p21,sa,ca,es,s,start;
 static double false_easting;
 static double false_northing;
-static double som_series(double *fb, double *fa2, double *fa4, double *fc1,
+static void som_series(double *fb, double *fa2, double *fa4, double *fc1,
         double *fc3,double *dlam);
 
 long sominvint(r_major,r_minor,satnum,path,alf_in,lon,false_east,false_north,
@@ -149,7 +149,7 @@ c1=sumc1/15.0;
 c3=sumc3/45.0;
 return(OK);
 }
-
+
 long sominv(y, x, lon, lat)
  
 double x;               /* (I) X projection coordinate */
@@ -227,7 +227,7 @@ return(OK);
 
    Mathematical analysis by John Snyder 6/82
   --------------------------------------------------------------------------*/
-static double som_series(fb,fa2,fa4,fc1,fc3,dlam)
+static void som_series(fb,fa2,fa4,fc1,fc3,dlam)
 double *fb,*fa2,*fa4,*fc1,*fc3,*dlam;
 {
 double sd,sdsq,h,sq,fc;

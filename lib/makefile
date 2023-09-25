@@ -20,35 +20,28 @@ libs:=$(libs:libpng.a=)
 libs:=$(libs:.a=.x)
 libsdir:=$(libs:.x=)
 
-ifeq ($(MAKE_SHARED_LIB),gnu_linux)
-   shared_lib:=libwgrib2.so
-else if ($(MAKE_SHARED_LIB),gnu_mac)
-   shared_lib:=libwgrib2.dylib
-else
-   shared_lib:=
-endif
-
-
 all:	${libs}
 	touch libpng.a ; rm libpng.*
 	$(AR) cr libwgrib2.a */*.o
 ifeq ($(MAKE_SHARED_LIB),gnu_linux)
-	${CC} -shared ${CPPFLAGS} -o ${shared_lib} */*.o ${LDFLAGS} 
+	${CC} -shared ${CPPFLAGS} -o libwgrib2.so  */*.o ${LDFLAGS} 
+else ifeq ($(MAKE_SHARED_LIB),clang_linux)
+	${CC} -shared ${CPPFLAGS} -o libwgrib2.so */*.o ${LDFLAGS} 
+else ifeq ($(MAKE_SHARED_LIB),nvidia_linux)
+	${CC} -shared ${CPPFLAGS} -o libwgrib2.so */*.o ${LDFLAGS} 
+else ifeq ($(MAKE_SHARED_LIB),oneapi_linux)
+	${CC} -shared ${CPPFLAGS} -o libwgrib2.so */*.o ${LDFLAGS} 
 else ifeq ($(MAKE_SHARED_LIB),gnu_mac)
-	${CC} -dynamiclib ${CPPFLAGS} -o ${shared_lib} */*.o ${LDFLAGS} 
+	${CC} -dynamiclib ${CPPFLAGS} -o libwgrib2.dylib  */*.o ${LDFLAGS} 
+else ifeq ($(MAKE_SHARED_LIB),cygwin_win)
+	${CC} -shared ${CPPFLAGS} -o libwgrib2.so */*.o ${LDFLAGS} 
 endif
 	rm */*.o *.x
 	rm -r ${libsdir}
 
 clean:
-	touch junk.la ; rm *.la
-	touch junk.a ; rm *.a
-ifneq ($(MAKE_SHARED_LIB),0)
-	touch ${shared_lib} ; rm ${shared_lib}
-endif
-	touch junk.x ; rm  *.x
-	touch junk.mod ; rm *.mod
-	touch junk.h ; rm *.h
+	touch junk.x junk.so junk.dynlib junk.mod junk.la junk.a
+	rm  *.x *.so *.dynlib *.mod *.la *.a
 	mkdir -p pkgconfig && rm -r pkgconfig
 	touch libjunk ; rm -r lib*
 

@@ -15,8 +15,7 @@ extern int ieee_little_endian;
 
 int rdieee_file(float *array, unsigned int n, int header, struct seq_file *input) {
 
-    int i, j;
-    unsigned int l;
+    unsigned int i, j, l;
     size_t nbytes;
     unsigned char buff[BSIZ];
     unsigned char h4[4],t4[4];

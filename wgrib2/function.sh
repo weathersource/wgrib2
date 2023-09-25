@@ -7,6 +7,7 @@
 # set -x
 
 # get list of all callable functions
+export LC_ALL=C
 grep "^ \* HEADER:" [A-Z]*.c | cut -f3- -d: | sort -t: -k3,3 -k2,2 >fnlist
 
 cat >fnlist.c <<EOF
@@ -72,5 +73,3 @@ echo "};" >>fnlist.c
 
 echo " " >> fnlist.c
 echo "int nfunctions = sizeof functions / sizeof functions[0];" >> fnlist.c
-
-

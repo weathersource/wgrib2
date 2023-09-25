@@ -56,6 +56,7 @@ extern double *lat, *lon;
 extern int  scan, nx, ny;
 extern int *variable_dim;
 extern enum output_order_type output_order;
+extern enum geolocation_type geolocation;
 
 // static double toradians(double x) { return x * (M_PI/180.0); }
 static double todegrees(double x) { return x * (180.0/M_PI); }
@@ -908,7 +909,6 @@ int gauss2ll(unsigned char **sec, double **llat, double **llon) {
 /* closest_init:  location of grid point in x-y-z space, assume r=1 */ 
 
 static double *x = NULL, *y = NULL, *z = NULL;
-extern int use_gctpc;
 
 int closest_init(unsigned char **sec) {
 
@@ -917,16 +917,16 @@ int closest_init(unsigned char **sec) {
     int grid_type;
 
 
-    if (use_gctpc && output_order == wesn && nx > 0 && ny > 0) {
+    if (geolocation == gctpc) {
        if (gctpc_ll2xy_init(sec, lon, lat) == 0) return 0;
     }
 
     grid_type = code_table_3_1(sec);
 
-    if  (!GDS_Scan_staggered(scan) && nx > 0 && ny > 0) {
-        /* if grids with (lat,lon) -> (i,j) insert code here */
-        if (grid_type == 0 && output_order == wesn) return latlon_init(sec, nx, ny);
-        if (grid_type == 90 && output_order == wesn) return space_view_init(sec);
+    if  (!GDS_Scan_staggered(scan) && nx > 0 && ny > 0 && output_order == wesn) {
+        if (grid_type == 0) return latlon_init(sec, nx, ny);
+        if (grid_type == 40 && 2*GDS_Gaussian_nlat(sec[3]) == ny) return gaussian_init(sec, nx, ny);
+        if (grid_type == 90) return space_view_init(sec);
     }
 
     nnpts = GB2_Sec3_npts(sec);
@@ -973,16 +973,19 @@ long int closest(unsigned char **sec, double plat, double plon) {
     double t, xx, yy, zz, small;
     unsigned int k;
 
-    if (use_gctpc && output_order == wesn && nx > 0 && ny > 0) {
+
+    if (geolocation == gctpc) {
 	/* will fix it so that everything is 0 for out of bounds */
 	if (gctpc_ll2i(1, &plon, &plat, &k) == 0) return ((long int) k) - 1;
     }
 
     grid_type = code_table_3_1(sec);
-
-    // if grid with (lat,lon) -> (i,j) /l.. insert code here
-    if (grid_type == 0 && nx > 0 && ny > 0 && output_order == wesn) return latlon_closest(sec, plat, plon);
-    if (grid_type == 90 && nx > 0 && ny > 0 && output_order == wesn) return space_view_closest(sec, plat, plon);
+    
+    if  (!GDS_Scan_staggered(scan) && nx > 0 && ny > 0 && output_order == wesn) {
+        if (grid_type == 0) return latlon_closest(sec, plat, plon);
+        if (grid_type == 40 && 2*GDS_Gaussian_nlat(sec[3]) == ny) return gaussian_closest(sec, plat, plon);
+        if (grid_type == 90) return space_view_closest(sec, plat, plon);
+    }
 
     nnpts = GB2_Sec3_npts(sec);
     if (x == NULL) return -1l;

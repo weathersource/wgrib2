@@ -701,7 +701,7 @@ int f_grid(ARG0) {
 		  break;
 #endif
             case 90: 
-		sprintf(inv_out,"%sSpace view perspective or orographic grid (%d x %d)",nl,nx,ny);
+		sprintf(inv_out,"%sSpace view perspective or orthographic grid (%d x %d)",nl,nx,ny);
                 inv_out += strlen(inv_out);
 \
      		basic_ang = GDS_LatLon_basic_ang(gds);

@@ -451,7 +451,7 @@ fprintf(stderr,"netcdf: were added/updated %d fields, file %s\n",save->nid,save-
       fatal_error("netcdf: undefined or unsupported (reserved?) level: %s",level_buf);
 
     // WNE ok=getName(sec, mode, NULL, name, desc, unit);
-    ok=getExtName(sec, mode, NULL, name, desc, unit,".","_");
+    ok=getExtName(sec, mode, NULL, name, desc, unit);
 
 #ifdef DEBUG_NC
 fprintf(stderr,"netcdf: Start processing of %s at %s\n", name, level_buf);

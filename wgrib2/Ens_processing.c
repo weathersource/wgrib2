@@ -67,7 +67,6 @@ static int free_ens_proc_struct(struct ens_proc_struct *save) {
         free_sec(save->first_sec);
 	if (save->ngrids) {
 	    free(save->grids);
-	    save->ngrids=0;
 	}
     }
     free(save);
@@ -141,6 +140,7 @@ static int update_ens_proc_struct(struct ens_proc_struct *save,
 	if (save->grids == NULL) {
 	    /* if realloc fails, original memory is retained .. some memory is lost here, don't care */
 	    save->ngrids = 0;
+	    save->has_val = 0;
 	    fatal_error("ens_processing: memory allocation in update","");
 	}
     }
@@ -222,7 +222,7 @@ static int wrt_ens_proc(unsigned char **sec, struct ens_proc_struct *save) {
 
     /* create new_pdt (sec4) */
 
-    if (new_pdt(save->first_sec, sec4, pdt_ens, -1, 1)) 
+    if (new_pdt(save->first_sec, sec4, pdt_ens, -1, 1, NULL)) 
         fatal_error("ens_processing: new_pdt failed","");
     /* make a new sec[][] */
     for (i = 0; i < 9; i++) new_sec[i] = save->first_sec[i];
@@ -240,7 +240,7 @@ static int wrt_ens_proc(unsigned char **sec, struct ens_proc_struct *save) {
     table_4_9_probability = NULL;
     if (extra) {		/* extra .. use probability template for extras */
         /* create new_pdt for probability sec4_probability */
-        if (new_pdt(save->first_sec, sec4_probability, pdt_probability, -1, 1)) 
+        if (new_pdt(save->first_sec, sec4_probability, pdt_probability, -1, 1, NULL)) 
             fatal_error("ens_processing: new_pdt probability failed","");
         for (i = 0; i < 9; i++) new_sec_probability[i] = save->first_sec[i];
         new_sec_probability[4] = sec4_probability;
@@ -252,7 +252,7 @@ static int wrt_ens_proc(unsigned char **sec, struct ens_proc_struct *save) {
     }
 
     /* creaate new_pdt_percentile */
-    if (new_pdt(save->first_sec, sec4_percentile, pdt_percentile, -1, 1)) 
+    if (new_pdt(save->first_sec, sec4_percentile, pdt_percentile, -1, 1, NULL)) 
             fatal_error("ens_processing: new_pdt percentile failed","");
     for (i = 0; i < 9; i++) new_sec_percentile[i] = save->first_sec[i];
     new_sec_percentile[4] = sec4_percentile;
@@ -522,9 +522,8 @@ int f_ens_processing(ARG2) {
     }
     save = (struct ens_proc_struct *) *local;
     if (mode == -2) {
-if (mode == 98) fprintf(stderr,"ens_processing: >> cleanup wrt\n");
         wrt_ens_proc(save->first_sec, save);
-if (mode == 98) fprintf(stderr,"ens_processing: >> cleanup init\n");
+        fclose_file(&(save->out));
         free_ens_proc_struct(save);
         return 0;
     }

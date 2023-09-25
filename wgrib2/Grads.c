@@ -27,8 +27,6 @@ extern enum output_order_type output_order;
 extern double *lat, *lon;
 
 //extern int file_append;
-extern int use_ext_name;
-
 
 /*
  * HEADER:-1:ctl_inv:inv:0:ctl inventory dump for g2ctl/GrADS

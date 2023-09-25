@@ -17,6 +17,7 @@
 
 extern int latlon, decode;
 extern double *lat, *lon;
+extern enum geolocation_type geolocation;
 
 /*
  * HEADER:100:import_lonlat:misc:1:read lon-lat data from binary file
@@ -25,7 +26,8 @@ int f_import_lonlat(ARG1) {
     struct seq_file *save;
     unsigned int zero, ndata_ll;
     char id[8];
-    int i, j;
+    int j;
+    unsigned int i;
 
     if (mode == -1) {
         *local = save = (struct seq_file *) malloc( sizeof(struct seq_file));
@@ -55,8 +57,14 @@ int f_import_lonlat(ARG1) {
 
 	/* file:  'wgrib2ll ' // ndata // 0 // lon // lat */
 
-	if (fseek_file(save, 0l, SEEK_SET) != 0) fatal_error("import_lonlat: fseek_file error","");
-        if (fread_file(id, sizeof(char), (size_t) 8, save) != 8) fatal_error("import_lonlat: missing header","");
+        j = fread_file(id, sizeof(char), (size_t) 8, save);
+	/* 6/2022 if EOF try from beginning of file */
+	if (j == 0) {
+	    if (fseek_file(save, 0l, SEEK_SET) != 0) fatal_error("import_lonlat: fseek_file error","");
+            j = fread_file(id, sizeof(char), (size_t) 8, save);
+	}
+	if (j == 0) fatal_error("import_lonlat: empty or missing file","");
+	if (j != 8) fatal_error("import_lonlat: missing header","");
 	if (strncmp(id,"wgrib2ll",8) != 0) fatal_error("import_lonlat: bad header","");
 	if (mode > 0) {
 	    fprintf(stderr, "header=");
@@ -65,18 +73,12 @@ int f_import_lonlat(ARG1) {
 	}
         if (fread_file(&ndata_ll, sizeof(unsigned int) , (size_t) 1, save) != 1) fatal_error("import_lonlat: ndata","");
         if (mode > 0) fprintf(stderr, "import_lonlat: ndata=%u\n", ndata_ll);
-
         if (fread_file(&zero, sizeof(unsigned int), (size_t) 1, save) != 1) fatal_error("import_lonlat: bad header","");
+	if (zero != 0) fatal_error("import_lonlat: zero was expected","");
 	if (ndata != ndata_ll) fatal_error("import_lonlat: grid size does not match","");
 	if (fread_file(&lon[0], sizeof(double), (size_t) ndata, save) != ndata) fatal_error("import_lonat:lon read","");
 	if (fread_file(&lat[0], sizeof(double), (size_t) ndata, save) != ndata) fatal_error("import_lonat:lat read","");
-	if (mode > 0) {
-	    j = ndata;
-	    if (mode == 1 && j > 10) j = 10;
-	    for (i = 0; i < j; i++) {
-		fprintf(stderr,"grid(%d)= (%lf, %lf)\n", i, lon[i],lat[i]);	
-	    }
-    	}
+	geolocation = external;
    }
    return 0;
 }

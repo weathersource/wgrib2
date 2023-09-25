@@ -21,8 +21,7 @@
 
 #ifdef USE_G2CLIB
 #include "grib2.h"
-extern gribfield *grib_data;
-extern int free_gribfield;			// flag for allocated gribfield
+extern gribfield *grib_data; extern int free_gribfield;			// flag for allocated gribfield
 #endif
 
 /* global variables .. can be modified by funtions */
@@ -31,10 +30,12 @@ extern int mode;		/*-2=finalize, -1=initialize,  0 .. N is verbosity mode */
 extern int header;    		/* file header flag */
 extern int flush_mode;		/* flush of output 1 = yes */
 extern int WxText;		/* decode NDFD keys */
+extern int ftime_mode;		/* ftime control */
 
 extern int use_g2clib;		/* use g2clib/emulation code for decoding */
 extern int use_gctpc;		/* use gctpc for geolocation */
 extern int use_proj4;		/* use Proj4 for geolocation */
+extern enum geolocation_type geolocation;
 
 extern int fix_ncep_2_flag;	
 extern int fix_ncep_3_flag;	
@@ -52,7 +53,7 @@ extern int fgrep, fgrep_flag, fgrep_count;
 extern int egrep, egrep_flag, egrep_count;
 #endif
 
-extern int last_message;	/* last message to process if set */
+extern unsigned int last_message;	/* last message to process if set */
 
 extern struct seq_file inv_file;
 
@@ -113,7 +114,7 @@ extern int match_extra_fn_n;
 extern int match_count_fs;
 
 
-extern int use_ext_name;		/* ExtName.c */
+extern unsigned int type_ext_name;	/* ExtName.c */
 extern int WxNum;			/* wxtext.c */
 extern char *WxTable, **WxKeys;
 
@@ -123,13 +124,15 @@ extern int text_column;			/* File.c */
 #ifdef USE_TIGGE
 extern int tigge;			/* Tigge.c */
 #endif
+extern int names;			/* Names.c */
 
 // extern long int pos_input;		/* seq read of grib */
 
 
 extern FILE *err_file;			/* EOF.c */
 extern FILE *err_str_file;
-
+extern char err_str[STRING_SIZE];
+extern int err_int;
 
 extern int save_translation;		/* Misc */
 
@@ -139,6 +142,15 @@ extern char *match_extra_fn_arg2[MATCH_EXTRA_FN];
 extern int match_extra_fn_n;
 
 extern char ndates_fmt[NAMELEN];
+
+extern int check_pdt_size_flag;
+extern int warn_check_pdt;
+
+extern char ext_name_field, ext_name_space;
+
+#if defined USE_NETCDF3 || defined USE_NETCDF4
+extern int nc4;
+#endif
 
 void init_globals(void) {
     int i;
@@ -151,10 +163,12 @@ void init_globals(void) {
     header=1;           /* file header flag */
     flush_mode = 0;	/* flush of output 1 = yes */
     WxText = 0;		/* decode NDFD keys */
+    ftime_mode = 0;	
 
     use_g2clib = DEFAULT_G2CLIB;        /* use g2clib/emulation code for decoding */
     use_gctpc = DEFAULT_GCTPC;          /* use gctpc for geolocation */
     use_proj4 = DEFAULT_PROJ4;          /* use Proj4 for geolocation */
+    geolocation = not_used;
 
     fix_ncep_2_flag = 0;
     fix_ncep_3_flag = 0;
@@ -188,6 +202,8 @@ void init_globals(void) {
     dump_msg = 0, dump_submsg = 0;
     dump_offset = 0;
     ieee_little_endian = 0;
+    check_pdt_size_flag = 1;
+    warn_check_pdt = 1;
 
     decode = 0;         /* decode grib file flag */
 
@@ -214,7 +230,7 @@ void init_globals(void) {
 #endif
     match_count_fs = 0;		/* Match_fs.c */
 
-    use_ext_name = 0;		/* ExtName.c */
+    type_ext_name = 0;		/* ExtName.c */
     WxTable = NULL;		/* wxtest.c */
     WxKeys = NULL;
     WxNum = 0;			/*  wxtext.c */
@@ -226,6 +242,8 @@ void init_globals(void) {
     tigge = 0;			/* Tigge.c */
 #endif
 
+    names = USE_NAMES;
+
     save_translation = 0;	/* Scan.c */
 
     init_mem_buffers();         /* mem_buffer.c */
@@ -234,6 +252,7 @@ void init_globals(void) {
 //    pos_input = 0;
 
     err_file = err_str_file = NULL;
+    err_str[0] = err_int = 0;
 
     for (i = 0; i < MATCH_EXTRA_FN; i++) {
 	match_extra_fn_arg1[i] = NULL;
@@ -247,6 +266,12 @@ void init_globals(void) {
     new_grid_format = grib;
 #endif
 
+    ext_name_field = '.';
+    ext_name_space = '_';
+
+#if defined USE_NETCDF3 || defined USE_NETCDF4
+    nc4 = 0;
+#endif
+
     return;
 }
-

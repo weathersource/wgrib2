@@ -32,7 +32,7 @@ extern int use_bitmap;
 int f_set_grib_type(ARG1) {
     int pack;
     if (strcmp(arg1,"simple") == 0 || strcmp(arg1,"s") == 0) grib_type = simple;
-#ifdef USE_JASPER
+#if defined USE_JASPER || defined USE_OPENJPEG
     else if(strcmp(arg1,"jpeg") == 0 || strcmp(arg1,"j") == 0) grib_type = jpeg;
 #endif
     else if (strcmp(arg1,"ieee") == 0 || strcmp(arg1,"i") == 0) grib_type = ieee_packing;
@@ -66,7 +66,7 @@ int f_set_grib_type(ARG1) {
 	        else grib_type = complex3;
 	    }
 	    else if (pack == 4) grib_type = ieee_packing;
-#ifdef USE_JASPER
+#if defined USE_JASPER || defined USE_OPENJPEG
 	    else if (pack == 40) grib_type = jpeg;
 #endif
 #ifdef USE_AEC
@@ -153,7 +153,7 @@ int grib_wrt(unsigned char **sec, float *data, unsigned int ndata, unsigned int 
 
     if (grib_type == simple) simple_grib_out(sec, data, ndata, use_scale, dec_scale, bin_scale, wanted_bits, max_bits, out); 
     else if (grib_type == ieee_packing) ieee_grib_out(sec, data, ndata, out);
-#ifdef USE_JASPER
+#if defined USE_JASPER || defined USE_OPENJPEG
     else if (grib_type == jpeg) jpeg2000_grib_out(sec, data, ndata, nx, ny, use_scale, dec_scale, bin_scale, wanted_bits, max_bits, out);
 #endif
     else if (grib_type == complex1) complex_grib_out(sec, data, ndata, use_scale, dec_scale, bin_scale, wanted_bits, 
@@ -223,7 +223,10 @@ unsigned char *mk_bms(float *data, unsigned int *ndata) {
         return bms;
     }
 
-    bms_size = 6 + (nn+7) / 8;
+    /* bms_size = 6 + (nn+7) / 8; */
+    /* nn+7 can overflow */
+    bms_size = 6 + nn/8 + ((nn%8) != 0);
+
     bms = (unsigned char *) malloc(bms_size);
     if (bms == NULL) fatal_error("mk_bms: memory allocation problem","");
 
